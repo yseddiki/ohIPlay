@@ -14,10 +14,19 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      
+      // Handle non-JSON responses (like redirects)
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { message: 'Non-JSON response received' };
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
       return data;
@@ -62,12 +71,17 @@ class ApiService {
     });
   }
 
-  // Payments
+  // Payments - FIXED endpoint to match backend
   async createPaymentSession(bookingId) {
-    return this.request('/payments/create-session', {
+    return this.request('/payments/create-payment-intent', {
       method: 'POST',
       body: JSON.stringify({ bookingId }),
     });
+  }
+
+  // Health check
+  async healthCheck() {
+    return this.request('/health');
   }
 }
 
