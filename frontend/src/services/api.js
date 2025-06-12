@@ -36,7 +36,7 @@ class ApiService {
     }
   }
 
-  // Bootcamps
+  // Bootcamps - FIXED to handle direct array response
   async getBootcamps(params = {}) {
     const searchParams = new URLSearchParams();
     Object.keys(params).forEach(key => {
@@ -44,7 +44,10 @@ class ApiService {
     });
     
     const queryString = searchParams.toString();
-    return this.request(`/bootcamps${queryString ? `?${queryString}` : ''}`);
+    const bootcamps = await this.request(`/bootcamps${queryString ? `?${queryString}` : ''}`);
+    
+    // Backend returns array directly, wrap it for consistent API
+    return { data: Array.isArray(bootcamps) ? bootcamps : [] };
   }
 
   async getBootcamp(id) {
@@ -71,7 +74,7 @@ class ApiService {
     });
   }
 
-  // Payments - FIXED endpoint to match backend
+  // Payments
   async createPaymentSession(bookingId) {
     return this.request('/payments/create-payment-intent', {
       method: 'POST',

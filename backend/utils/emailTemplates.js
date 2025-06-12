@@ -1,6 +1,10 @@
-const bookingConfirmationTemplate = (booking, bootcamp) => {
+
+// Add these to the existing emailTemplates.js file:
+
+// Custom bootcamp request notification for admin
+const customRequestNotificationTemplate = (request) => {
   return {
-    subject: `Booking Confirmed - ${bootcamp.title} | OH! PLAY`,
+    subject: `New Custom Bootcamp Request - ${request.customerInfo.fullName}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -11,87 +15,83 @@ const bookingConfirmationTemplate = (booking, bootcamp) => {
           .header { background: #16a34a; color: white; padding: 20px; text-align: center; }
           .content { padding: 20px; background: #f9f9f9; }
           .details { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
-          .footer { text-align: center; padding: 20px; color: #666; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
             <h1>🌿 OH! PLAY</h1>
-            <h2>Booking Confirmed!</h2>
+            <h2>New Custom Bootcamp Request</h2>
           </div>
           
           <div class="content">
-            <p>Dear ${booking.customerInfo.fullName},</p>
-            
-            <p>Great news! Your booking has been confirmed. Get ready for an incredible adventure!</p>
-            
             <div class="details">
-              <h3>Booking Details</h3>
-              <p><strong>Bootcamp:</strong> ${bootcamp.title}</p>
-              <p><strong>Date:</strong> ${new Date(booking.bookingDate).toLocaleDateString()}</p>
-              <p><strong>Participants:</strong> ${booking.numberOfParticipants}</p>
-              <p><strong>Total Amount:</strong> €${booking.totalAmount}</p>
-              <p><strong>Duration:</strong> ${bootcamp.duration}</p>
-              <p><strong>Location:</strong> ${bootcamp.location}</p>
+              <h3>Customer Information</h3>
+              <p><strong>Name:</strong> ${request.customerInfo.fullName}</p>
+              <p><strong>Email:</strong> ${request.customerInfo.email}</p>
+              <p><strong>Phone:</strong> ${request.customerInfo.phone}</p>
+              ${request.customerInfo.company ? `<p><strong>Company:</strong> ${request.customerInfo.company}</p>` : ''}
+              <p><strong>Submitted:</strong> ${new Date(request.createdAt).toLocaleString()}</p>
             </div>
             
             <div class="details">
-              <h3>What to Bring</h3>
-              <ul>
-                <li>Comfortable athletic wear</li>
-                <li>Sturdy sneakers or boots</li>
-                <li>Water bottle</li>
-                <li>Towel</li>
-                <li>Positive attitude and enthusiasm!</li>
-              </ul>
+              <h3>Requirements</h3>
+              <p><strong>Group Size:</strong> ${request.requirements.groupSize} participants</p>
+              ${request.requirements.preferredDate ? `<p><strong>Preferred Date:</strong> ${new Date(request.requirements.preferredDate).toLocaleDateString()}</p>` : ''}
+              ${request.requirements.duration ? `<p><strong>Duration:</strong> ${request.requirements.duration}</p>` : ''}
+              ${request.requirements.budget ? `<p><strong>Budget:</strong> ${request.requirements.budget}</p>` : ''}
+              ${request.requirements.location ? `<p><strong>Location:</strong> ${request.requirements.location}</p>` : ''}
             </div>
             
-            ${booking.specialRequests ? `
             <div class="details">
-              <h3>Your Special Requests</h3>
-              <p>${booking.specialRequests}</p>
+              <h3>Objectives</h3>
+              <p>${request.requirements.objectives}</p>
+            </div>
+            
+            ${request.requirements.specialRequests ? `
+            <div class="details">
+              <h3>Special Requests</h3>
+              <p>${request.requirements.specialRequests}</p>
             </div>
             ` : ''}
             
-            <p>Questions? Contact us at info@OH-I-PLAY.be</p>
-          </div>
-          
-          <div class="footer">
-            <p>See you soon for an unforgettable adventure!</p>
-            <p>🌿 The OH! PLAY Team</p>
+            <p style="text-align: center; margin-top: 20px;">
+              <a href="${process.env.CLIENT_URL}/admin/dashboard" 
+                 style="background: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                View in Admin Dashboard
+              </a>
+            </p>
           </div>
         </div>
       </body>
       </html>
     `,
     text: `
-      Booking Confirmed - OH! PLAY
+      New Custom Bootcamp Request - OH! PLAY
       
-      Dear ${booking.customerInfo.fullName},
+      Customer: ${request.customerInfo.fullName}
+      Email: ${request.customerInfo.email}
+      Phone: ${request.customerInfo.phone}
+      ${request.customerInfo.company ? `Company: ${request.customerInfo.company}` : ''}
       
-      Your booking for ${bootcamp.title} has been confirmed!
+      Group Size: ${request.requirements.groupSize} participants
+      ${request.requirements.preferredDate ? `Preferred Date: ${new Date(request.requirements.preferredDate).toLocaleDateString()}` : ''}
+      ${request.requirements.duration ? `Duration: ${request.requirements.duration}` : ''}
+      ${request.requirements.budget ? `Budget: ${request.requirements.budget}` : ''}
       
-      Details:
-      - Date: ${new Date(booking.bookingDate).toLocaleDateString()}
-      - Participants: ${booking.numberOfParticipants}
-      - Total: €${booking.totalAmount}
-      - Location: ${bootcamp.location}
+      Objectives: ${request.requirements.objectives}
       
-      What to bring: comfortable athletic wear, sturdy shoes, water bottle, towel, and enthusiasm!
+      ${request.requirements.specialRequests ? `Special Requests: ${request.requirements.specialRequests}` : ''}
       
-      Questions? Contact us at info@OH-I-PLAY.be
-      
-      See you soon!
-      The OH! PLAY Team
+      View in Admin Dashboard: ${process.env.CLIENT_URL}/admin/dashboard
     `
   };
 };
 
-// Contact form notification template
-const contactNotificationTemplate = (contact) => {
+// Quote notification for customer
+const quoteNotificationTemplate = (request) => {
   return {
-    subject: `New Contact Form Submission - OH! PLAY`,
+    subject: `Your Custom Bootcamp Quote - OH! PLAY`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -102,48 +102,75 @@ const contactNotificationTemplate = (contact) => {
           .header { background: #16a34a; color: white; padding: 20px; text-align: center; }
           .content { padding: 20px; background: #f9f9f9; }
           .details { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+          .price { font-size: 24px; color: #16a34a; font-weight: bold; text-align: center; margin: 20px 0; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
             <h1>🌿 OH! PLAY</h1>
-            <h2>New Contact Form Submission</h2>
+            <h2>Your Custom Bootcamp Quote</h2>
           </div>
           
           <div class="content">
-            <div class="details">
-              <h3>Contact Information</h3>
-              <p><strong>Name:</strong> ${contact.fullName}</p>
-              <p><strong>Email:</strong> ${contact.email}</p>
-              <p><strong>Phone:</strong> ${contact.phone}</p>
-              <p><strong>Submitted:</strong> ${new Date(contact.createdAt).toLocaleString()}</p>
+            <p>Dear ${request.customerInfo.fullName},</p>
+            
+            <p>Thank you for your interest in our custom bootcamp experiences! We've reviewed your requirements and are excited to provide you with a personalized quote.</p>
+            
+            <div class="price">
+              Total Price: €${request.quotedPrice}
             </div>
             
             <div class="details">
-              <h3>Message</h3>
-              <p>${contact.message}</p>
+              <h3>Your Requirements</h3>
+              <p><strong>Group Size:</strong> ${request.requirements.groupSize} participants</p>
+              ${request.requirements.duration ? `<p><strong>Duration:</strong> ${request.requirements.duration}</p>` : ''}
+              ${request.requirements.preferredDate ? `<p><strong>Preferred Date:</strong> ${new Date(request.requirements.preferredDate).toLocaleDateString()}</p>` : ''}
             </div>
+            
+            ${request.adminNotes ? `
+            <div class="details">
+              <h3>Additional Information</h3>
+              <p>${request.adminNotes}</p>
+            </div>
+            ` : ''}
+            
+            <p>This quote is valid for 30 days. To proceed with booking or if you have any questions, please contact us at info@OH-I-PLAY.be or call +32 XXX XX XX XX.</p>
+            
+            <p>We look forward to creating an amazing adventure experience for your group!</p>
+            
+            <p>Best regards,<br>The OH! PLAY Team</p>
           </div>
         </div>
       </body>
       </html>
     `,
     text: `
-      New Contact Form Submission - OH! PLAY
+      Your Custom Bootcamp Quote - OH! PLAY
       
-      Name: ${contact.fullName}
-      Email: ${contact.email}
-      Phone: ${contact.phone}
-      Submitted: ${new Date(contact.createdAt).toLocaleString()}
+      Dear ${request.customerInfo.fullName},
       
-      Message:
-      ${contact.message}
+      Thank you for your interest in our custom bootcamp experiences!
+      
+      Total Price: €${request.quotedPrice}
+      
+      Group Size: ${request.requirements.groupSize} participants
+      ${request.requirements.duration ? `Duration: ${request.requirements.duration}` : ''}
+      ${request.requirements.preferredDate ? `Preferred Date: ${new Date(request.requirements.preferredDate).toLocaleDateString()}` : ''}
+      
+      ${request.adminNotes ? `Additional Information: ${request.adminNotes}` : ''}
+      
+      This quote is valid for 30 days. To proceed with booking or if you have any questions, please contact us at info@OH-I-PLAY.be or call +32 XXX XX XX XX.
+      
+      Best regards,
+      The OH! PLAY Team
     `
   };
 };
 
 module.exports = {
   bookingConfirmationTemplate,
-  contactNotificationTemplate
+  contactNotificationTemplate,
+  customRequestNotificationTemplate,
+  quoteNotificationTemplate
 };

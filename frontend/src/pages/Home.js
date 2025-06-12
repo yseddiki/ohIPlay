@@ -6,6 +6,7 @@ import apiService from '../services/api';
 const Home = () => {
   const [featuredBootcamps, setFeaturedBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchFeaturedBootcamps();
@@ -13,10 +14,16 @@ const Home = () => {
 
   const fetchFeaturedBootcamps = async () => {
     try {
+      setError('');
       const response = await apiService.getBootcamps({ limit: 3 });
-      setFeaturedBootcamps(response.data);
+      
+      // Ensure we always have an array
+      const bootcamps = response?.data || [];
+      setFeaturedBootcamps(Array.isArray(bootcamps) ? bootcamps.slice(0, 3) : []);
     } catch (error) {
       console.error('Error fetching bootcamps:', error);
+      setError('Failed to load bootcamps');
+      setFeaturedBootcamps([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -115,6 +122,20 @@ const Home = () => {
             </p>
           </div>
 
+          {error && (
+            <div className="text-center mb-8">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 max-w-md mx-auto">
+                {error}
+              </div>
+              <button 
+                onClick={fetchFeaturedBootcamps}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
           {loading ? (
             <div className="grid md:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
@@ -128,6 +149,20 @@ const Home = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : featuredBootcamps.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🏃‍♂️</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No bootcamps available</h3>
+              <p className="text-gray-600 mb-4">
+                {error ? 'There was an error loading bootcamps.' : 'Check back soon for new adventures!'}
+              </p>
+              <Link
+                to="/contact"
+                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              >
+                Contact Us
+              </Link>
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-8">

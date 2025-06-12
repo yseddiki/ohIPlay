@@ -1,3 +1,8 @@
+// ================================
+// FIXED BOOKING FORM - Total Price Only
+// frontend/src/pages/BookingForm.js
+// ================================
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Users, CreditCard, ArrowRight } from 'lucide-react';
@@ -58,9 +63,9 @@ const BookingForm = () => {
     setError('');
   };
 
-  const calculateTotal = () => {
-    if (!bootcamp) return 0;
-    return bootcamp.price * formData.numberOfParticipants;
+  // FIXED: Price is total for bootcamp, not per person
+  const getTotalPrice = () => {
+    return bootcamp ? bootcamp.price : 0;
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +77,7 @@ const BookingForm = () => {
       const bookingData = {
         ...formData,
         bootcampId: id,
-        totalAmount: calculateTotal()
+        totalAmount: getTotalPrice() // Fixed: total price, not calculated per person
       };
 
       const response = await apiService.createBooking(bookingData);
@@ -171,9 +176,10 @@ const BookingForm = () => {
 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Price per person:</span>
+                    <span className="text-lg font-semibold">Total Price:</span>
                     <span className="text-2xl font-bold text-green-600">€{bootcamp.price}</span>
                   </div>
+                  <p className="text-sm text-gray-500 mt-1">Fixed price for the entire bootcamp experience</p>
                 </div>
               </div>
             </div>
@@ -265,21 +271,23 @@ const BookingForm = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <Users className="inline h-4 w-4 mr-1" />
-                        Number of Participants *
+                        Expected Number of Participants
                       </label>
                       <select
                         name="numberOfParticipants"
                         value={formData.numberOfParticipants}
                         onChange={handleChange}
-                        required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       >
                         {Array.from({ length: bootcamp.maxParticipants }, (_, i) => i + 1).map(num => (
                           <option key={num} value={num}>
-                            {num} {num === 1 ? 'person' : 'people'}
+                            {num} {num === 1 ? 'person' : 'people'} (for planning purposes)
                           </option>
                         ))}
                       </select>
+                      <p className="text-sm text-gray-500 mt-1">
+                        This helps us prepare but doesn't affect the price
+                      </p>
                     </div>
 
                     <div>
@@ -303,7 +311,7 @@ const BookingForm = () => {
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-lg font-semibold">Total Amount:</span>
                     <span className="text-2xl font-bold text-green-600">
-                      €{calculateTotal()}
+                      €{getTotalPrice()}
                     </span>
                   </div>
                   
